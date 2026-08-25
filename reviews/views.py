@@ -68,8 +68,6 @@ class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportSerializer
 
     def get_permissions(self):
-        # Si el usuario quiere crear un reporte (POST), solo necesita estar autenticado.
-        # Si quiere ver la lista, editar o borrar reportes, debe ser Administrador.
         if self.action == 'create':
             return [permissions.IsAuthenticated()]
         return [IsAdminUser()]
