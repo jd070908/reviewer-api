@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics, permissions
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -66,19 +66,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            return [permissions.IsAuthenticated()]
-        return [IsAdminUser()]
+    permission_classes = [permissions.IsAuthenticated]  # Permite a cualquier usuario autenticado ver y gestionar
 
     def perform_create(self, serializer):
         # Asigna automáticamente al usuario que hace el reporte
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=['post'])
     def delete_review(self, request, pk=None):
-        """Acción para que el administrador elimine la reseña ofensiva directamente desde el reporte"""
+        """Acción para eliminar la reseña ofensiva directamente desde el reporte"""
         report = self.get_object()
         review = report.review
         review.delete()
