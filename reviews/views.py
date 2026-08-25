@@ -1,11 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import Genre, Movie, Review
-from .serializers import GenreSerializer, MovieSerializer, ReviewSerializer
+from .serializers import GenreSerializer, MovieSerializer, ReviewSerializer, RegisterSerializer
 import openai
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -62,3 +62,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+class RegisterView(generics.CreateAPIView):
+    queryset = Movie.objects.none() # No requiere un queryset de películas, usa el de User por defecto en el serializer
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny] # Permite que cualquier usuario anónimo pueda registrarse
