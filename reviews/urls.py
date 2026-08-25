@@ -1,17 +1,19 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import GenreViewSet, MovieViewSet, ReviewViewSet, ReportViewSet, RegisterView
+from .views import (
+    GenreViewSet, MovieViewSet, ReviewViewSet, 
+    ReportViewSet, RegisterView, UserAdminViewSet, CustomApiRoot
+)
 
 router = DefaultRouter()
 router.register(r'genres', GenreViewSet)
 router.register(r'movies', MovieViewSet)
 router.register(r'reviews', ReviewViewSet)
-router.register(r'reports', ReportViewSet)  # Nueva ruta para el sistema de denuncias
+router.register(r'reports', ReportViewSet)
+router.register(r'users-admin', UserAdminViewSet, basename='useradmin') # <- Añadimos basename='useradmin'
 
 urlpatterns = [
-    # Incluimos las rutas automáticas del router (genres, movies, reviews, reports)
+    path('', CustomApiRoot.as_view(), name='api-root'),
     path('', include(router.urls)),
-    
-    # Ruta para que cualquier usuario pueda registrarse
     path('register/', RegisterView.as_view(), name='auth_register'),
 ]

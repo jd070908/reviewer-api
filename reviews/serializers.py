@@ -52,3 +52,18 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = ['id', 'review', 'user', 'username', 'review_comment', 'review_owner', 'reason', 'created_at', 'is_resolved']
         read_only_fields = ['user', 'created_at']
+
+class BanReportActionSerializer(serializers.Serializer):
+    # Serializador para generar el formulario interactivo en la acción de baneo desde DRF
+    ban_user = serializers.BooleanField(
+        required=False, 
+        default=False, 
+        help_text="Marcar en True para desactivar (banear) al usuario autor de la reseña."
+    )
+    
+class UnbanUserActionSerializer(serializers.Serializer):
+    unban = serializers.BooleanField(
+        required=False, 
+        default=True, 
+        help_text="Marcar en True para reactivar (desbanear) al usuario."
+    )
