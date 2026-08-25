@@ -28,3 +28,16 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.movie.title}"
+
+class Report(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reports', verbose_name="Reseña Reportada")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Usuario que reporta")
+    reason = models.TextField(verbose_name="Motivo del reporte")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha del reporte")
+    is_resolved = models.BooleanField(default=False, verbose_name="¿Resuelto?")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Reporte de {self.user.username} sobre reseña #{self.review.id}"

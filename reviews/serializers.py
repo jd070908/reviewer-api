@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Genre, Movie, Review
+from .models import Genre, Movie, Review, Report
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,3 +42,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+class ReportSerializer(serializers.ModelSerializer):
+    # Campos informativos de solo lectura para la API
+    username = serializers.ReadOnlyField(source='user.username')
+    review_comment = serializers.ReadOnlyField(source='review.comment')
+    review_owner = serializers.ReadOnlyField(source='review.user.username')
+
+    class Meta:
+        model = Report
+        fields = ['id', 'review', 'user', 'username', 'review_comment', 'review_owner', 'reason', 'created_at', 'is_resolved']
+        read_only_fields = ['user', 'created_at']

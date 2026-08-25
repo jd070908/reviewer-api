@@ -1,11 +1,11 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, permissions
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .models import Genre, Movie, Review
-from .serializers import GenreSerializer, MovieSerializer, ReviewSerializer, RegisterSerializer
+from .models import Genre, Movie, Review, Report
+from .serializers import GenreSerializer, MovieSerializer, ReviewSerializer, RegisterSerializer, ReportSerializer
 import openai
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -63,7 +63,32 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class ReportViewSet(viewsets.ModelViewSet):
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+
+    def get_permissions(self):
+        # Si el usuario quiere crear un reporte (POST), solo necesita estar autenticado.
+        # Si quiere ver la lista, editar o borrar reportes, debe ser Administrador.
+        if self.action == 'create':
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUser()]
+
+    def perform_create(self, serializer):
+        # Asigna automáticamente al usuario que hace el reporte
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def delete_review(self, request, pk=None):
+        """Acción para que el administrador elimine la reseña ofensiva directamente desde el reporte"""
+        report = self.get_object()
+        review = report.review
+        review.delete()
+        report.is_resolved = True
+        report.save()
+        return Response({"detail": "Reseña eliminada con éxito y reporte marcado como resuelto."})
+
 class RegisterView(generics.CreateAPIView):
-    queryset = Movie.objects.none() # No requiere un queryset de películas, usa el de User por defecto en el serializer
+    queryset = Movie.objects.none() 
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny] # Permite que cualquier usuario anónimo pueda registrarse
+    permission_classes = [AllowAny]
