@@ -23,9 +23,12 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('reviews.urls')), # <--- Esta línea es la que le dice que busque /api/
-    
-    # Rutas para JWT
+    path('api/', include('reviews.urls')), 
+
+    # Rutas para JWT (Login y Refresh de tokens)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    
+    path('api-auth/', include('rest_framework.urls')),
 ]
