@@ -13,7 +13,6 @@ from .serializers import (
     RegisterSerializer, ReportSerializer, BanReportActionSerializer,
     UnbanUserActionSerializer
 )
-import openai
 
 class IsAdminOrReadOnly(BasePermission):
     """
@@ -59,38 +58,6 @@ class MovieViewSet(viewsets.ModelViewSet):
     filterset_fields = ['genre']
     search_fields = ['title', 'description']
     ordering_fields = ['release_date', 'title']
-
-    @action(detail=True, methods=['get'])
-    def summary(self, request, pk=None):
-        movie = self.get_object()
-        reviews = movie.reviews.all()
-
-        if not reviews.exists():
-            return Response({"detail": "Esta película aún no tiene reseñas para resumir."}, status=400)
-
-        reviews_text = "\n".join([f"- {r.comment} (Calificación: {r.rating}/5)" for r in reviews])
-
-        client = openai.OpenAI(
-            base_url="http://localhost:11434/v1",
-            api_key="ollama",
-        )
-
-        try:
-            response = client.chat.completions.create(
-                model="llama3",
-                messages=[
-                    {"role": "system", "content": "Eres un crítico de cine experto. Resume las siguientes reseñas de usuarios en un párrafo corto."},
-                    {"role": "user", "content": f"Reseñas para la película '{movie.title}':\n{reviews_text}"}
-                ],
-                max_tokens=150
-            )
-            ai_summary = response.choices[0].message.content
-            return Response({"movie": movie.title, "ai_summary": ai_summary})
-            
-        except Exception as e:
-            return Response({
-                "error": f"No se pudo conectar con Ollama localmente. Asegúrate de que esté abierto. Detalle: {str(e)}"
-            }, status=500)
 
 class ReportActionSerializer(serializers.Serializer):
     reason = serializers.CharField(required=True, help_text="Motivo por el cual se reporta la reseña.")
